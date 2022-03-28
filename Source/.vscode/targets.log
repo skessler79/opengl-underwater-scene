@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Mon Mar 28 17:17:47 2022
+# Make data base, printed on Mon Mar 28 19:37:33 2022
 
 # Variables
 
@@ -103,7 +103,7 @@ GDK_PIXBUF_MODULE_FILE = /home/selwyn/snap/code/common/.cache/gdk-pixbuf-loaders
 # environment
 SNAP = /snap/code/91
 # environment
-WINDOWID = 96468999
+WINDOWID = 102760455
 # environment
 NVM_BIN = /home/selwyn/.nvm/versions/node/v12.12.0/bin
 # environment
@@ -221,7 +221,7 @@ SHLVL = 1
 # makefile (from 'Makefile', line 5)
 CC = g++
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-60f3ad39-d1a4-440b-a4a5-200cc8f21589.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-741b1c1b-b9db-4221-a78d-6b464ca593b1.sock
 # environment
 XDG_SESSION_ID = 3
 # environment
@@ -265,15 +265,13 @@ PT8HOME = /opt/pt
 # environment
 NVM_DIR = /home/selwyn/.nvm
 # environment
-SHELL_SESSION_ID = 9a582876150742448cfd0c38e8a98ef8
+SHELL_SESSION_ID = a8b9a6743d8944099bdebbb05cfa7477
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # environment
 GDK_BACKEND = x11
 # environment
 LC_PAPER = ms_MY.UTF-8
-# environment
-NO_AT_BRIDGE = 1
 # environment
 QT_ACCESSIBILITY = 1
 # environment
@@ -282,13 +280,13 @@ COLORFGBG = 0;15
 DEFAULTS_PATH = /usr/share/gconf/plasma.default.path
 # default
 MAKEFILES := 
- 
 # environment
 SNAP_COOKIE = -W4Ce11ROusTkYKp6u-Fj83fV_HAt6lbdiAvRlrBRls7lUnuzuSW
 # environment
 LC_NUMERIC = ms_MY.UTF-8
 # automatic
 <F = $(notdir $<)
+ 
 # environment
 LC_MEASUREMENT = ms_MY.UTF-8
 # environment
@@ -308,7 +306,7 @@ _CE_M =
 # environment
 CHROME_DESKTOP = code-url-handler.desktop
 # environment
-KONSOLE_DBUS_SERVICE = :1.937
+KONSOLE_DBUS_SERVICE = :1.2666
 # default
 .INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
 # environment
@@ -324,13 +322,13 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 12115
+VSCODE_PID = 57259
 # environment
 _CE_CONDA = 
 # environment
 KDE_SESSION_UID = 1000
 # variable set hash-table stats:
-# Load=159/1024=16%, Rehash=0, Collisions=25/193=13%
+# Load=158/1024=15%, Rehash=0, Collisions=25/192=13%
 
 # Pattern-specific Variable Values
 
@@ -392,7 +390,7 @@ Makefile:
 # Not a target:
 main.cpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-03-28 17:17:38.183047418
+#  Last modified 2022-03-28 17:22:02.962300898
 #  File has been updated.
 #  Successfully updated.
 
@@ -416,6 +414,6 @@ main.cpp:
 # strcache performance: lookups = 33 / hit rate = 24%
 # hash-table stats:
 # Load=25/8192=0%, Rehash=0, Collisions=1/33=3%
-# Finished Make data base on Mon Mar 28 17:17:47 2022
+# Finished Make data base on Mon Mar 28 19:37:33 2022
 
  
