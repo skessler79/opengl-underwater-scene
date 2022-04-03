@@ -32,15 +32,24 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// Spotlight Settings
-// ------------------
-bool spotlightToggle = false;
-bool spotlightToggleReleased = true;
-
 // Frame Timing
 // ------------
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+// User Toggles
+// ------------
+bool directionalLightToggle = true;
+bool directionalLightToggleReleased = true;
+
+bool pointLightToggle = false;
+bool pointLightToggleReleased = true;
+
+bool grassGeometryToggle = false;
+bool grassGeometryToggleReleased = true;
+
+bool spotlightToggle = false;
+bool spotlightToggleReleased = true;
 
 int main()
 {
@@ -82,7 +91,7 @@ int main()
     }
 
     // Tell stb_image.h to flip loaded textures on the y-axis (before loading model)
-    stbi_set_flip_vertically_on_load(true);
+    // stbi_set_flip_vertically_on_load(true);
 
     // -----------------------------
     // Configure global OpenGL state
@@ -104,6 +113,7 @@ int main()
     Shader skyboxShader("skybox.vs", "skybox.fs");
     Shader waterShader("water_shader.vs", "water_shader.fs");
     Shader screenShader("framebuffers_screen.vs", "framebuffers_screen.fs");
+    Shader normalShader("normal_visualization.vs", "normal_visualization.fs", "normal_visualization.gs");
 
     Shader cubeShader("colors.vs", "colors.fs");
 
@@ -238,14 +248,14 @@ int main()
     // -----------
     // Load models
     // -----------
-    Model ourModel("res/models/river/river.obj");
+    Model ourModel("res/models/river_color/river_color.obj");
     Model fishModel01("res/models/fish_01/fish.obj");
 
     // Position of point lights
     // ------------------------
     glm::vec3 pointLightPositions[] = 
     {
-        glm::vec3( 0.7f,  5.2f,  0.0f),
+        glm::vec3( 1.0f,  1.8f,  0.0f),
         glm::vec3( 2.3f, -3.3f, -4.0f),
         glm::vec3(-4.0f,  2.0f, -12.0f),
         glm::vec3( 0.0f,  0.0f, -3.0f)
@@ -466,7 +476,10 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Also clear the depth buffer now
 
-         // Activate shaders
+        // Oscillate point light
+        glm::vec3 pointLightPosition = glm::vec3(sin(glfwGetTime()) * 2.0f, 2.0f, 0.0f);
+
+        // Activate shaders
         ourShader.use();
         ourShader.setVec4("plane", glm::vec4(0, 0, 0, 0));
         ourShader.setVec3("viewPos", camera.Position);
@@ -480,18 +493,36 @@ int main()
         */
 
         // Directional Light
-        float sunDir = sin(glfwGetTime()) * 2.0f;
-        // float sunDir = -0.2f;
+        // float sunDir = sin(glfwGetTime()) * 2.0f;
+        float sunDir = -0.2f;
         ourShader.setVec3("dirLight.direction", sunDir, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 1.0f, 1.0f, 1.0f);
-        ourShader.setVec3("dirLight.diffuse", 20.0f, 20.0f, 20.0f);
-        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        ourShader.setVec3("dirLight.ambient", 0.02f, 0.02f, 0.02f);
+        if(directionalLightToggle)
+        {
+            ourShader.setVec3("dirLight.diffuse", 0.5f, 0.5f, 0.5f);
+            ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        }
+        else
+        {
+            ourShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("dirLight.specular", 0.05f, 0.05f, 0.05f);
+        }
 
         // Point Light
-        ourShader.setVec3("pointLights[0].position", pointLightPositions[0]);
-        ourShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-        ourShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-        ourShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+        ourShader.setVec3("pointLights[0].position", pointLightPosition);
+        if(pointLightToggle)
+        {
+            ourShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+            ourShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+            ourShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+        }
+        else
+        {
+            ourShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("pointLights[0].diffuse", 0.0f, 0.0f, 0.0f);
+            ourShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
+        }
+
         ourShader.setFloat("pointLights[0].constant", 1.0f);
         ourShader.setFloat("pointLights[0].linear", 0.09f);
         ourShader.setFloat("pointLights[0].quadratic", 0.032f);
@@ -502,7 +533,7 @@ int main()
             ourShader.setVec3("spotLight.position", camera.Position);
             ourShader.setVec3("spotLight.direction", camera.Front);
             ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.diffuse", 10.0f, 10.0f, 10.0f);
+            ourShader.setVec3("spotLight.diffuse", 1.5f, 1.5f, 1.5f);
             ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
             ourShader.setFloat("spotLight.constant", 1.0f);
             ourShader.setFloat("spotLight.linear", 0.09f);
@@ -544,21 +575,32 @@ int main()
 
         ourModel.Draw(ourShader);
 
+        // Then draw model with normal visualizing geometry shader
+        if(grassGeometryToggle)
+        {
+            normalShader.use();
+            normalShader.setMat4("projection", projection);
+            normalShader.setMat4("view", view);
+            normalShader.setMat4("model", model);
+
+            ourModel.Draw(normalShader);
+        }
+        
         // Fish
         // ----
-
+        ourShader.use();
         // Reducing light intensities
-        ourShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
 
         if(spotlightToggle)
-            ourShader.setVec3("spotLight.diffuse", 0.05f, 0.05f, 0.05f);
+            ourShader.setVec3("spotLight.diffuse", 0.25f, 0.25f, 0.25f);
         else
             ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
 
         // World transformation
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.5f, 0.7f, 1.0f));
-        model = glm::scale(model, glm::vec3(0.03f, 0.03f, 0.03f));
+        model = glm::translate(model, glm::vec3(-1.5f, 0.5f, 1.0f));
+        model = glm::scale(model, glm::vec3(0.07f, 0.07f, 0.07f));
         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         ourShader.setMat4("model", model);
 
@@ -574,7 +616,7 @@ int main()
         // Draw light bulb
         glBindVertexArray(lightCubeVAO);
         model = glm::mat4(1.0f);
-        model = glm::translate(model, pointLightPositions[0]);
+        model = glm::translate(model, pointLightPosition);
         model = glm::scale(model, glm::vec3(0.2f));
         lightCubeShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -998,13 +1040,44 @@ void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, deltaTime);
 
+    // Grass geometry toggle
+    // ------------------------
+    if(glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE)
+        grassGeometryToggleReleased = true;
+    else if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS && grassGeometryToggleReleased == true)
+    {
+        grassGeometryToggle ^= 0x1;
+        grassGeometryToggleReleased = false;
+    }
+
     // Spotlight toggle
+    // ----------------
     if(glfwGetKey(window, GLFW_KEY_F) == GLFW_RELEASE)
         spotlightToggleReleased = true;
     else if(glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && spotlightToggleReleased == true)
     {
         spotlightToggle ^= 0x1;
         spotlightToggleReleased = false;
+    }
+
+    // Directional light toggle
+    // ------------------------
+    if(glfwGetKey(window, GLFW_KEY_O) == GLFW_RELEASE)
+        directionalLightToggleReleased = true;
+    else if(glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS && directionalLightToggleReleased == true)
+    {
+        directionalLightToggle ^= 0x1;
+        directionalLightToggleReleased = false;
+    }
+
+    // Point light toggle
+    // ------------------
+    if(glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
+        pointLightToggleReleased = true;
+    else if(glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS && pointLightToggleReleased == true)
+    {
+        pointLightToggle ^= 0x1;
+        pointLightToggleReleased = false;
     }
 }
 
