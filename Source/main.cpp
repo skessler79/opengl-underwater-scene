@@ -32,6 +32,7 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(char const* path);
 unsigned int loadCubemap(std::vector<std::string> faces);
+void renderScene(Model models[], Shader ourShader, Shader normalShader, Shader lightCubeShader, unsigned int lightCubeVAO);
 
 // Window Settings
 // ---------------
@@ -66,6 +67,8 @@ bool spotlightToggleReleased = true;
 
 bool wireframeToggle = false;
 bool wireframeToggleReleased = true;
+
+
 
 int main()
 {
@@ -142,19 +145,22 @@ int main()
     // -----------
     // Load models
     // -----------
-    Model ourModel("res/models/river_color/river_color.obj");
-    Model fishModel01("res/models/fish_01/fish.obj");
-    Model fishModel02("res/models/fish_02/2nd fish.obj");
-    Model reaperModel("res/models/reaper/reaper3.obj");
-    Model seaweedModel("res/models/seaweed/weed13.obj");
-    Model rockModel("res/models/rock/rock_again1.obj");
-    Model starfishModel("res/models/starfish/starfish.obj");
-    Model eyeFishModel("res/models/eye_fish/eye.obj");
-    Model fishRedModel("res/models/fishwhite/fish 2.obj");
+    Model models[] =
+    {
+        Model("res/models/river_color/river_color.obj"),
+        Model("res/models/fish_01/fish.obj"),
+        Model("res/models/fish_02/2nd fish.obj"),
+        Model("res/models/reaper/reaper3.obj"),
+        Model("res/models/seaweed/weed13.obj"),
+        Model("res/models/rock/rock_again1.obj"),
+        Model("res/models/starfish/starfish.obj"),
+        Model("res/models/eye_fish/eye.obj"),
+        Model("res/models/fishwhite/fish 2.obj")
+    };
 
     // Configure the light cube's VAO and VBO
     // --------------------------------------
-    unsigned int lightCubeVAO, VBO;
+    unsigned int lightCubeVAO,VBO;
     VaoVboLoader::loadLightCube(lightCubeVAO, VBO, vertices);
 
     // Configure the skybox VAO and VBO
@@ -259,8 +265,6 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Also clear the depth buffer now
 
-        // Oscillate point light
-        glm::vec3 pointLightPosition = glm::vec3(sin(glfwGetTime()) * 2.0f, 2.0f, 0.0f);
 
         // Activate shaders
         ourShader.use();
@@ -268,252 +272,7 @@ int main()
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
 
-        /*
-            Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index
-            the proper PointLight struct in the array to set each uniform variable. This can be done more code-friendly
-            by defining light types as classes and set their values in there, or by using a more efficient uniform approach
-            by using "Uniform Buffer Objects", but that is something we'll discuss in the "Advanced GLSL" tutorial.
-        */
-
-        // Directional Light
-        // float sunDir = sin(glfwGetTime()) * 2.0f;
-        float sunDir = -0.2f;
-        ourShader.setVec3("dirLight.direction", sunDir, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.02f, 0.02f, 0.02f);
-        if(directionalLightToggle)
-        {
-            ourShader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-        }
-        else
-        {
-            ourShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("dirLight.specular", 0.05f, 0.05f, 0.05f);
-        }
-
-        // Point Light
-        ourShader.setVec3("pointLights[0].position", pointLightPosition);
-        if(pointLightToggle)
-        {
-            ourShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-            ourShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        }
-        else
-        {
-            ourShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("pointLights[0].diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
-        }
-
-        ourShader.setFloat("pointLights[0].constant", 1.0f);
-        ourShader.setFloat("pointLights[0].linear", 0.09f);
-        ourShader.setFloat("pointLights[0].quadratic", 0.032f);
-
-        // Spotlights
-        if(spotlightToggle)
-        {
-            ourShader.setVec3("spotLight.position", camera.Position);
-            ourShader.setVec3("spotLight.direction", camera.Front);
-            ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.diffuse", 1.5f, 1.5f, 1.5f);
-            ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-            ourShader.setFloat("spotLight.constant", 1.0f);
-            ourShader.setFloat("spotLight.linear", 0.09f);
-            ourShader.setFloat("spotLight.quadratic", 0.032f);
-            ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        }
-        else
-        {
-            ourShader.setVec3("spotLight.position", camera.Position);
-            ourShader.setVec3("spotLight.direction", camera.Front);
-            ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.specular", 0.0f, 0.0f, 0.0f);
-            ourShader.setFloat("spotLight.constant", 1.0f);
-            ourShader.setFloat("spotLight.linear", 0.09f);
-            ourShader.setFloat("spotLight.quadratic", 0.032f);
-            ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        }
-        
-        // Transformations
-        // ---------------
-
-        // View / Projection Matrices
-
-        // Reverse camera
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        ourShader.setMat4("view", view);
-        ourShader.setMat4("projection", projection);
-
-        // World transformation
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        ourModel.Draw(ourShader);
-
-        // Then draw model with normal visualizing geometry shader
-        if(grassGeometryToggle)
-        {
-            normalShader.use();
-            normalShader.setMat4("projection", projection);
-            normalShader.setMat4("view", view);
-            normalShader.setMat4("model", model);
-
-            ourModel.Draw(normalShader);
-        }
-        
-        // ---------
-        // 3D Models
-        // ---------
-
-        ourShader.use();
-
-        // Fish 01
-        // -------
-
-        // Reducing light intensities
-        ourShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
-        ourShader.setVec3("dirLight.ambient", 0.15f, 0.15f, 0.15f);
-
-        if(spotlightToggle)
-            ourShader.setVec3("spotLight.diffuse", 0.5f, 0.5f, 0.5f);
-        else
-            ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.5f + cos(glfwGetTime()) * 0.5f, 0.5f, 1.0f + sin(glfwGetTime()) * 0.5f));
-        model = glm::scale(model, glm::vec3(0.07f, 0.07f, 0.07f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(-57.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishModel01.Draw(ourShader);
-
-        // Fish 02
-        // -------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.4f + cos(glfwGetTime()) * 0.5f, 0.7f, -3.0f));
-        model = glm::scale(model, glm::vec3(0.15f, 0.15f, 0.15f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishModel02.Draw(ourShader);
-
-        // Reaper
-        // ------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.4f, 0.0f, -1.0f));
-        model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        reaperModel.Draw(ourShader);
-
-        // Seaweed
-        // -------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.5f, -0.1f, 1.0f));
-        model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        seaweedModel.Draw(ourShader);
-
-        model = glm::translate(model, glm::vec3(3.2f, 0.0f, -5.0f));
-        model = glm::scale(model, glm::vec3(0.7f, 1.2f, 0.7f));
-        model = glm::rotate(model, (float)glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        seaweedModel.Draw(ourShader);
-
-        model = glm::translate(model, glm::vec3(-1.0f, 0.5f, -3.0f));
-        model = glm::scale(model, glm::vec3(0.8f, 0.7f, 0.8f));
-        model = glm::rotate(model, (float)glm::radians(-60.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        seaweedModel.Draw(ourShader);
-
-        // Rock
-        // ----
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.2f, 0.5f, 2.2f));
-        model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        rockModel.Draw(ourShader);
-
-        // Starfish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 1.7f, -1.2f));
-        model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(90.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        starfishModel.Draw(ourShader);
-
-        // Eye Fish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-0.7f, 0.5f, 2.8f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(57.0f * glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-        ourShader.setMat4("model", model);
-
-        eyeFishModel.Draw(ourShader);
-
-        // Red Fish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.6f, 0.2f, 2.0f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(180.0f + 10.0f * sin(glfwGetTime() * 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishRedModel.Draw(ourShader);
-
-        // Rendering the lamp object
-        // -------------------------
-
-        lightCubeShader.use();
-        lightCubeShader.setMat4("projection", projection);
-        lightCubeShader.setMat4("view", view);
-
-        // Draw light bulb
-        glBindVertexArray(lightCubeVAO);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, pointLightPosition);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightCubeShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        renderScene(models, ourShader, normalShader, lightCubeShader, lightCubeVAO);
 
         // -----
         // Water
@@ -521,12 +280,14 @@ int main()
         waterShader.use();
         glBindVertexArray(reflectionVAO);
 
-        model = glm::mat4(1.0f);
+        glm::mat4 model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(12.5f, 1.0f, 11.0f));
         model = glm::translate(model, glm::vec3(0.5f, 1.0f, -0.7f));
         model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
         waterShader.setMat4("model", model);
+        glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         waterShader.setMat4("view", view);
         waterShader.setMat4("projection", projection);
         // waterShader.setInt("refractionTexture", refractionTextureColorbuffer);
@@ -570,243 +331,7 @@ int main()
         ourShader.setVec3("viewPos", camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
 
-        // Directional Light
-        ourShader.setVec3("dirLight.direction", sunDir, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.02f, 0.02f, 0.02f);
-        if(directionalLightToggle)
-        {
-            ourShader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-        }
-        else
-        {
-            ourShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("dirLight.specular", 0.05f, 0.05f, 0.05f);
-        }
-
-        // Point Light
-        ourShader.setVec3("pointLights[0].position", pointLightPosition);
-        if(pointLightToggle)
-        {
-            ourShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-            ourShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        }
-        else
-        {
-            ourShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("pointLights[0].diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
-        }
-
-        ourShader.setFloat("pointLights[0].constant", 1.0f);
-        ourShader.setFloat("pointLights[0].linear", 0.09f);
-        ourShader.setFloat("pointLights[0].quadratic", 0.032f);
-
-        // Spotlights
-        if(spotlightToggle)
-        {
-            ourShader.setVec3("spotLight.position", camera.Position);
-            ourShader.setVec3("spotLight.direction", camera.Front);
-            ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.diffuse", 1.5f, 1.5f, 1.5f);
-            ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-            ourShader.setFloat("spotLight.constant", 1.0f);
-            ourShader.setFloat("spotLight.linear", 0.09f);
-            ourShader.setFloat("spotLight.quadratic", 0.032f);
-            ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        }
-        else
-        {
-            ourShader.setVec3("spotLight.position", camera.Position);
-            ourShader.setVec3("spotLight.direction", camera.Front);
-            ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.specular", 0.0f, 0.0f, 0.0f);
-            ourShader.setFloat("spotLight.constant", 1.0f);
-            ourShader.setFloat("spotLight.linear", 0.09f);
-            ourShader.setFloat("spotLight.quadratic", 0.032f);
-            ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        }
-        
-        // Transformations
-        // ---------------
-
-        // View / Projection Matrices
-
-        // Reverse camera
-        view = camera.GetViewMatrix();
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        ourShader.setMat4("view", view);
-        ourShader.setMat4("projection", projection);
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        ourModel.Draw(ourShader);
-
-        // Then draw model with normal visualizing geometry shader
-        if(grassGeometryToggle)
-        {
-            normalShader.use();
-            normalShader.setMat4("projection", projection);
-            normalShader.setMat4("view", view);
-            normalShader.setMat4("model", model);
-
-            ourModel.Draw(normalShader);
-        }
-        
-        // ---------
-        // 3D Models
-        // ---------
-
-        ourShader.use();
-
-        // Fish 01
-        // -------
-
-        // Reducing light intensities
-        ourShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
-        ourShader.setVec3("dirLight.ambient", 0.15f, 0.15f, 0.15f);
-
-        if(spotlightToggle)
-            ourShader.setVec3("spotLight.diffuse", 0.5f, 0.5f, 0.5f);
-        else
-            ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.5f + cos(glfwGetTime()) * 0.5f, 0.5f, 1.0f + sin(glfwGetTime()) * 0.5f));
-        model = glm::scale(model, glm::vec3(0.07f, 0.07f, 0.07f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(-57.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishModel01.Draw(ourShader);
-
-        // Fish 02
-        // -------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.4f + cos(glfwGetTime()) * 0.5f, 0.7f, -3.0f));
-        model = glm::scale(model, glm::vec3(0.15f, 0.15f, 0.15f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishModel02.Draw(ourShader);
-
-        // Reaper
-        // ------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.4f, 0.0f, -1.0f));
-        model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        reaperModel.Draw(ourShader);
-
-        // Seaweed
-        // -------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.5f, -0.1f, 1.0f));
-        model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        seaweedModel.Draw(ourShader);
-
-        model = glm::translate(model, glm::vec3(3.2f, 0.0f, -5.0f));
-        model = glm::scale(model, glm::vec3(0.7f, 1.2f, 0.7f));
-        model = glm::rotate(model, (float)glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        seaweedModel.Draw(ourShader);
-
-        model = glm::translate(model, glm::vec3(-1.0f, 0.5f, -3.0f));
-        model = glm::scale(model, glm::vec3(0.8f, 0.7f, 0.8f));
-        model = glm::rotate(model, (float)glm::radians(-60.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        seaweedModel.Draw(ourShader);
-
-        // Rock
-        // ----
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.2f, 0.5f, 2.2f));
-        model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        rockModel.Draw(ourShader);
-
-        // Starfish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 1.7f, -1.2f));
-        model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(90.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        starfishModel.Draw(ourShader);
-
-        // Eye Fish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-0.7f, 0.5f, 2.8f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(57.0f * glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-        ourShader.setMat4("model", model);
-
-        eyeFishModel.Draw(ourShader);
-
-        // Red Fish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.6f, 0.2f, 2.0f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(180.0f + 10.0f * sin(glfwGetTime() * 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishRedModel.Draw(ourShader);
-
-        // Rendering the lamp object
-        // -------------------------
-
-        lightCubeShader.use();
-        lightCubeShader.setMat4("projection", projection);
-        lightCubeShader.setMat4("view", view);
-
-        // Draw light bulb
-        glBindVertexArray(lightCubeVAO);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, pointLightPosition);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightCubeShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        renderScene(models, ourShader, normalShader, lightCubeShader, lightCubeVAO);
 
         // Draw skybox
         // -----------
@@ -857,243 +382,7 @@ int main()
         ourShader.use();
         ourShader.setVec4("plane", glm::vec4(0, -1, 0, 1));
 
-        // Directional Light
-        ourShader.setVec3("dirLight.direction", sunDir, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.02f, 0.02f, 0.02f);
-        if(directionalLightToggle)
-        {
-            ourShader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-        }
-        else
-        {
-            ourShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("dirLight.specular", 0.05f, 0.05f, 0.05f);
-        }
-
-        // Point Light
-        ourShader.setVec3("pointLights[0].position", pointLightPosition);
-        if(pointLightToggle)
-        {
-            ourShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-            ourShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-            ourShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        }
-        else
-        {
-            ourShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("pointLights[0].diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
-        }
-
-        ourShader.setFloat("pointLights[0].constant", 1.0f);
-        ourShader.setFloat("pointLights[0].linear", 0.09f);
-        ourShader.setFloat("pointLights[0].quadratic", 0.032f);
-
-        // Spotlights
-        if(spotlightToggle)
-        {
-            ourShader.setVec3("spotLight.position", camera.Position);
-            ourShader.setVec3("spotLight.direction", camera.Front);
-            ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.diffuse", 1.5f, 1.5f, 1.5f);
-            ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-            ourShader.setFloat("spotLight.constant", 1.0f);
-            ourShader.setFloat("spotLight.linear", 0.09f);
-            ourShader.setFloat("spotLight.quadratic", 0.032f);
-            ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        }
-        else
-        {
-            ourShader.setVec3("spotLight.position", camera.Position);
-            ourShader.setVec3("spotLight.direction", camera.Front);
-            ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
-            ourShader.setVec3("spotLight.specular", 0.0f, 0.0f, 0.0f);
-            ourShader.setFloat("spotLight.constant", 1.0f);
-            ourShader.setFloat("spotLight.linear", 0.09f);
-            ourShader.setFloat("spotLight.quadratic", 0.032f);
-            ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-            ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-        }
-        
-        // Transformations
-        // ---------------
-
-        // View / Projection Matrices
-
-        // Reverse camera
-        view = camera.GetViewMatrix();
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        ourShader.setMat4("view", view);
-        ourShader.setMat4("projection", projection);
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        ourModel.Draw(ourShader);
-
-        // Then draw model with normal visualizing geometry shader
-        if(grassGeometryToggle)
-        {
-            normalShader.use();
-            normalShader.setMat4("projection", projection);
-            normalShader.setMat4("view", view);
-            normalShader.setMat4("model", model);
-
-            ourModel.Draw(normalShader);
-        }
-        
-        // ---------
-        // 3D Models
-        // ---------
-
-        ourShader.use();
-
-        // Fish 01
-        // -------
-
-        // Reducing light intensities
-        ourShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
-        ourShader.setVec3("dirLight.ambient", 0.15f, 0.15f, 0.15f);
-
-        if(spotlightToggle)
-            ourShader.setVec3("spotLight.diffuse", 0.5f, 0.5f, 0.5f);
-        else
-            ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.5f + cos(glfwGetTime()) * 0.5f, 0.5f, 1.0f + sin(glfwGetTime()) * 0.5f));
-        model = glm::scale(model, glm::vec3(0.07f, 0.07f, 0.07f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(-57.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishModel01.Draw(ourShader);
-
-        // Fish 02
-        // -------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.4f + cos(glfwGetTime()) * 0.5f, 0.7f, -3.0f));
-        model = glm::scale(model, glm::vec3(0.15f, 0.15f, 0.15f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishModel02.Draw(ourShader);
-
-        // Reaper
-        // ------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.4f, 0.0f, -1.0f));
-        model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        reaperModel.Draw(ourShader);
-
-        // Seaweed
-        // -------
-
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.5f, -0.1f, 1.0f));
-        model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        seaweedModel.Draw(ourShader);
-
-        model = glm::translate(model, glm::vec3(3.2f, 0.0f, -5.0f));
-        model = glm::scale(model, glm::vec3(0.7f, 1.2f, 0.7f));
-        model = glm::rotate(model, (float)glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        seaweedModel.Draw(ourShader);
-
-        model = glm::translate(model, glm::vec3(-1.0f, 0.5f, -3.0f));
-        model = glm::scale(model, glm::vec3(0.8f, 0.7f, 0.8f));
-        model = glm::rotate(model, (float)glm::radians(-60.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-        seaweedModel.Draw(ourShader);
-
-        // Rock
-        // ----
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.2f, 0.5f, 2.2f));
-        model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        rockModel.Draw(ourShader);
-
-        // Starfish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(2.0f, 1.7f, -1.2f));
-        model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(90.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        starfishModel.Draw(ourShader);
-
-        // Eye Fish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-0.7f, 0.5f, 2.8f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(57.0f * glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-        ourShader.setMat4("model", model);
-
-        eyeFishModel.Draw(ourShader);
-
-        // Red Fish
-        // --------
-        
-        // World transformation
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(-1.6f, 0.2f, 2.0f));
-        model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-        // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, (float)glm::radians(180.0f + 10.0f * sin(glfwGetTime() * 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
-        ourShader.setMat4("model", model);
-
-        fishRedModel.Draw(ourShader);
-
-        // Rendering the lamp object
-        // -------------------------
-
-        lightCubeShader.use();
-        lightCubeShader.setMat4("projection", projection);
-        lightCubeShader.setMat4("view", view);
-
-        // Draw light bulb
-        glBindVertexArray(lightCubeVAO);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, pointLightPosition);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightCubeShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        renderScene(models, ourShader, normalShader, lightCubeShader, lightCubeVAO);
 
         // Draw skybox
         // -----------
@@ -1328,4 +617,251 @@ unsigned int loadCubemap(std::vector<std::string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     return textureID;
+}
+
+void renderScene(Model models[], Shader ourShader, Shader normalShader, Shader lightCubeShader, unsigned int lightCubeVAO)
+{
+    // Oscillate point light
+    glm::vec3 pointLightPosition = glm::vec3(sin(glfwGetTime()) * 2.0f, 2.0f, 0.0f);
+    
+    // Directional Light
+    float sunDir = -0.2f;
+    ourShader.setVec3("dirLight.direction", sunDir, -1.0f, -0.3f);
+    ourShader.setVec3("dirLight.ambient", 0.02f, 0.02f, 0.02f);
+    if(directionalLightToggle)
+    {
+        ourShader.setVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
+        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+    }
+    else
+    {
+        ourShader.setVec3("dirLight.diffuse", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("dirLight.specular", 0.05f, 0.05f, 0.05f);
+    }
+
+    // Point Light
+    ourShader.setVec3("pointLights[0].position", pointLightPosition);
+    if(pointLightToggle)
+    {
+        ourShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+        ourShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+        ourShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+    }
+    else
+    {
+        ourShader.setVec3("pointLights[0].ambient", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("pointLights[0].diffuse", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("pointLights[0].specular", 0.0f, 0.0f, 0.0f);
+    }
+
+    ourShader.setFloat("pointLights[0].constant", 1.0f);
+    ourShader.setFloat("pointLights[0].linear", 0.09f);
+    ourShader.setFloat("pointLights[0].quadratic", 0.032f);
+
+    // Spotlights
+    if(spotlightToggle)
+    {
+        ourShader.setVec3("spotLight.position", camera.Position);
+        ourShader.setVec3("spotLight.direction", camera.Front);
+        ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("spotLight.diffuse", 1.5f, 1.5f, 1.5f);
+        ourShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        ourShader.setFloat("spotLight.constant", 1.0f);
+        ourShader.setFloat("spotLight.linear", 0.09f);
+        ourShader.setFloat("spotLight.quadratic", 0.032f);
+        ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+    }
+    else
+    {
+        ourShader.setVec3("spotLight.position", camera.Position);
+        ourShader.setVec3("spotLight.direction", camera.Front);
+        ourShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
+        ourShader.setVec3("spotLight.specular", 0.0f, 0.0f, 0.0f);
+        ourShader.setFloat("spotLight.constant", 1.0f);
+        ourShader.setFloat("spotLight.linear", 0.09f);
+        ourShader.setFloat("spotLight.quadratic", 0.032f);
+        ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+    }
+    
+    // Transformations
+    // ---------------
+
+    // View / Projection Matrices
+
+    // Reverse camera
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    ourShader.setMat4("view", view);
+    ourShader.setMat4("projection", projection);
+
+    // World transformation
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+    model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+    model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[0].Draw(ourShader);
+
+    // Then draw model with normal visualizing geometry shader
+    if(grassGeometryToggle)
+    {
+        normalShader.use();
+        normalShader.setMat4("projection", projection);
+        normalShader.setMat4("view", view);
+        normalShader.setMat4("model", model);
+
+        models[0].Draw(normalShader);
+    }
+    
+    // ---------
+    // 3D Models
+    // ---------
+
+    ourShader.use();
+
+    // Fish 01
+    // -------
+
+    // Reducing light intensities
+    ourShader.setVec3("dirLight.diffuse", 0.2f, 0.2f, 0.2f);
+    ourShader.setVec3("dirLight.ambient", 0.15f, 0.15f, 0.15f);
+
+    if(spotlightToggle)
+        ourShader.setVec3("spotLight.diffuse", 0.5f, 0.5f, 0.5f);
+    else
+        ourShader.setVec3("spotLight.diffuse", 0.0f, 0.0f, 0.0f);
+
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.5f + cos(glfwGetTime()) * 0.5f, 0.5f, 1.0f + sin(glfwGetTime()) * 0.5f));
+    model = glm::scale(model, glm::vec3(0.07f, 0.07f, 0.07f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(-57.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[1].Draw(ourShader);
+
+    // Fish 02
+    // -------
+
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.4f + cos(glfwGetTime()) * 0.5f, 0.7f, -3.0f));
+    model = glm::scale(model, glm::vec3(0.15f, 0.15f, 0.15f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[2].Draw(ourShader);
+
+    // Reaper
+    // ------
+
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.4f, 0.0f, -1.0f));
+    model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[3].Draw(ourShader);
+
+    // Seaweed
+    // -------
+
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.5f, -0.1f, 1.0f));
+    model = glm::scale(model, glm::vec3(0.35f, 0.35f, 0.35f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[4].Draw(ourShader);
+
+    model = glm::translate(model, glm::vec3(3.2f, 0.0f, -5.0f));
+    model = glm::scale(model, glm::vec3(0.7f, 1.2f, 0.7f));
+    model = glm::rotate(model, (float)glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+    models[4].Draw(ourShader);
+
+    model = glm::translate(model, glm::vec3(-1.0f, 0.5f, -3.0f));
+    model = glm::scale(model, glm::vec3(0.8f, 0.7f, 0.8f));
+    model = glm::rotate(model, (float)glm::radians(-60.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+    models[4].Draw(ourShader);
+
+    // Rock
+    // ----
+    
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.2f, 0.5f, 2.2f));
+    model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[5].Draw(ourShader);
+
+    // Starfish
+    // --------
+    
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(2.0f, 1.7f, -1.2f));
+    model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(90.0f * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[6].Draw(ourShader);
+
+    // Eye Fish
+    // --------
+    
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-0.7f, 0.5f, 2.8f));
+    model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(57.0f * glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+    ourShader.setMat4("model", model);
+
+    models[7].Draw(ourShader);
+
+    // Red Fish
+    // --------
+    
+    // World transformation
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(-1.6f, 0.2f, 2.0f));
+    model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, (float)glm::radians(180.0f + 10.0f * sin(glfwGetTime() * 5.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+    ourShader.setMat4("model", model);
+
+    models[8].Draw(ourShader);
+
+    // Rendering the lamp object
+    // -------------------------
+
+    lightCubeShader.use();
+    view = camera.GetViewMatrix();
+    projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    lightCubeShader.setMat4("projection", projection);
+    lightCubeShader.setMat4("view", view);
+
+    // Draw light bulb
+    glBindVertexArray(lightCubeVAO);
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, pointLightPosition);
+    model = glm::scale(model, glm::vec3(0.2f));
+    lightCubeShader.setMat4("model", model);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
