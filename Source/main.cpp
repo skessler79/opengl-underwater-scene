@@ -21,6 +21,8 @@
 #include "shader.h"
 #include "camera.h"
 #include "model.h"
+#include "vertices.hpp"
+#include "vaovbo_loader.h"
 
 #include <iostream>
 
@@ -131,131 +133,11 @@ int main()
 
     // Set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    float vertices[] = {
-        // positions          // normals           // texture coords
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-    };
-
-    // Skybox
-    float skyboxVertices[] = {
-        // positions          
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-
-        -1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-         1.0f,  1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f
-    };
-
-    float waterVertices[] =
-    {
-        // positions        // texture coords
-        -1.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-         1.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-         1.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-        -1.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-         1.0f,  0.0f,  1.0f,  1.0f,  1.0f
-    };
-
-    // Vertex attributes for a the refraction quad that fills the top right
-    float reflectionVertices[] = {
-        // positions   // texCoords
-        -0.9f,  1.0f,  0.0f, 1.0f,
-        -0.9f,  0.4f,  0.0f, 0.0f,
-        -0.1f,  0.4f,  1.0f, 0.0f,
-
-        -0.9f,  1.0f,  0.0f, 1.0f,
-        -0.1f,  0.4f,  1.0f, 0.0f,
-        -0.1f,  1.0f,  1.0f, 1.0f
-    };
-
-    float refractionVertices[] = 
-    {
-        // positions   // texCoords
-         0.9f,  1.0f,  0.0f, 1.0f,
-         0.9f,  0.4f,  0.0f, 0.0f,
-         0.1f,  0.4f,  1.0f, 0.0f,
-
-         0.9f,  1.0f,  0.0f, 1.0f,
-         0.1f,  0.4f,  1.0f, 0.0f,
-         0.1f,  1.0f,  1.0f, 1.0f
-    };
+    float* vertices = Vertices::getVertices();
+    float* skyboxVertices = Vertices::getSkyboxVertices();
+    float* waterVertices = Vertices::getWaterVertices();
+    float* reflectionVertices = Vertices::getReflectionVertices();
+    float* refractionVertices = Vertices::getRefractionVertices();
 
     // -----------
     // Load models
@@ -273,85 +155,27 @@ int main()
     // Configure the light cube's VAO and VBO
     // --------------------------------------
     unsigned int lightCubeVAO, VBO;
-    glGenVertexArrays(1, &lightCubeVAO);
-    glGenBuffers(1, &VBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindVertexArray(lightCubeVAO);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    VaoVboLoader::loadLightCube(lightCubeVAO, VBO, vertices);
 
     // Configure the skybox VAO and VBO
     // --------------------------------
     unsigned int skyboxVAO, skyboxVBO;
-    glGenVertexArrays(1, &skyboxVAO);
-    glGenBuffers(1, &skyboxVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-    glBindVertexArray(skyboxVAO);
-
-    // Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+    VaoVboLoader::loadSkybox(skyboxVAO, skyboxVBO, skyboxVertices);
 
     // Configure the water VAO and VBO
     // -------------------------------
     unsigned int waterVAO, waterVBO;
-    glGenVertexArrays(1, &waterVAO);
-    glGenBuffers(1, &waterVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, waterVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(waterVertices), &waterVertices, GL_STATIC_DRAW);
-    glBindVertexArray(waterVAO);
-
-    // Position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Texture coordinate attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    VaoVboLoader::loadWater(waterVAO, waterVBO, waterVertices);
 
     // Configure the water reflection VAO and VBO
     // ----------------------------------------
     unsigned int reflectionVAO, reflectionVBO;
-    glGenVertexArrays(1, &reflectionVAO);
-    glGenBuffers(1, &reflectionVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, reflectionVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(reflectionVertices), &reflectionVertices, GL_STATIC_DRAW);
-
-    glBindVertexArray(reflectionVAO);
-
-    // Position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Texture coordinate attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    VaoVboLoader::loadReflectRefract(reflectionVAO, reflectionVBO, reflectionVertices);
 
     // Configure the water refraction VAO and VBO
     // ----------------------------------------
     unsigned int refractionVAO, refractionVBO;
-    glGenVertexArrays(1, &refractionVAO);
-    glGenBuffers(1, &refractionVBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, refractionVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(refractionVertices), &refractionVertices, GL_STATIC_DRAW);
-
-    glBindVertexArray(refractionVAO);
-
-    // Position attribute
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Texture coordinate attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    VaoVboLoader::loadReflectRefract(refractionVAO, refractionVBO, refractionVertices);
 
     // -------------
     // Load Textures
@@ -384,75 +208,13 @@ int main()
 
     // Reflection framebuffer
     // ----------------------
-    unsigned int reflectionFramebuffer;
-
-    glGenFramebuffers(1, &reflectionFramebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, reflectionFramebuffer);
-
-    // Create a Color Attachment Texture
-    unsigned int reflectionTextureColorbuffer;
-    glGenTextures(1, &reflectionTextureColorbuffer);
-    glBindTexture(GL_TEXTURE_2D, reflectionTextureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionTextureColorbuffer, 0);
-
-    // Create a renderbuffer object for depth and stencil attachment
-    unsigned int reflectionRbo;
-    glGenRenderbuffers(1, &reflectionRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, reflectionRbo);
-
-    // Use a single renderbuffer object for both a depth and stencil buffer
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-
-    // Attach the renderbuffer
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, reflectionRbo);
-
-    // Check and verify framebuffer status
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    unsigned int reflectionFramebuffer, reflectionTextureColorbuffer, reflectionRbo;
+    VaoVboLoader::loadFramebuffer(reflectionFramebuffer, reflectionTextureColorbuffer, reflectionRbo);
 
     // Refraction framebuffer
     // ----------------------
-    unsigned int refractionFramebuffer;
-
-    glGenFramebuffers(1, &refractionFramebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, refractionFramebuffer);
-
-    // Create a Color Attachment Texture
-    unsigned int refractionTextureColorbuffer;
-    glGenTextures(1, &refractionTextureColorbuffer);
-    glBindTexture(GL_TEXTURE_2D, refractionTextureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionTextureColorbuffer, 0);
-
-    // Create a renderbuffer object for depth and stencil attachment
-    unsigned int refractionRbo;
-    glGenRenderbuffers(1, &refractionRbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, refractionRbo);
-
-    // Use a single renderbuffer object for both a depth and stencil buffer
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-
-    // Attach the renderbuffer
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, refractionRbo);
-
-    // Check and verify framebuffer status
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    {
-        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    unsigned int refractionFramebuffer, refractionTextureColorbuffer, refractionRbo;
+    VaoVboLoader::loadFramebuffer(refractionFramebuffer, refractionTextureColorbuffer, refractionRbo);
 
     // -----------
     // Render Loop

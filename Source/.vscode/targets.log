@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Apr  3 15:14:11 2022
+# Make data base, printed on Sun Apr  3 21:56:24 2022
 
 # Variables
 
@@ -83,7 +83,7 @@ VSCODE_CWD = /home/selwyn/Programming/Uni/Computer_Graphics/Project/Source
 # environment
 PAM_KWALLET5_LOGIN = /run/user/1000/kwallet5.socket
 # environment
-XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session1
+XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session2
 # environment
 GSETTINGS_SCHEMA_DIR = /snap/code/92/usr/share/glib-2.0/schemas
 # default
@@ -95,7 +95,7 @@ GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
 # environment
 QT_AUTO_SCREEN_SCALE_FACTOR = 0
 # environment
-SESSION_MANAGER = local/selwyn-TUF:@/tmp/.ICE-unix/1676,unix/selwyn-TUF:/tmp/.ICE-unix/1676
+SESSION_MANAGER = local/selwyn-TUF:@/tmp/.ICE-unix/1793,unix/selwyn-TUF:/tmp/.ICE-unix/1793
 # environment
 XDG_RUNTIME_DIR = /run/user/1000
 # environment
@@ -103,7 +103,7 @@ GDK_PIXBUF_MODULE_FILE = /home/selwyn/snap/code/common/.cache/gdk-pixbuf-loaders
 # environment
 SNAP = /snap/code/92
 # environment
-WINDOWID = 117440519
+WINDOWID = 100663303
 # environment
 NVM_BIN = /home/selwyn/.nvm/versions/node/v12.12.0/bin
 # environment
@@ -127,7 +127,7 @@ LS_COLORS = rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:
 # environment
 XDG_SESSION_DESKTOP = KDE
 # environment
-SSH_AUTH_SOCK = /tmp/ssh-4iryTgRR0mBm/agent.1528
+SSH_AUTH_SOCK = /tmp/ssh-tqxypoac5is8/agent.1649
 # automatic
 %F = $(notdir $%)
 # environment
@@ -153,7 +153,7 @@ KDE_SESSION_VERSION = 5
 # environment
 XDG_SEAT = seat0
 # environment
-SSH_AGENT_PID = 1609
+SSH_AGENT_PID = 1732
 # environment
 ORIGINAL_XDG_CURRENT_DESKTOP = KDE
 # makefile (from 'Makefile', line 7)
@@ -221,9 +221,9 @@ SHLVL = 1
 # makefile (from 'Makefile', line 5)
 CC = g++
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-d7205d12-d93d-4fd1-8a57-831486986e2c.sock
+VSCODE_IPC_HOOK_EXTHOST = /run/user/1000/vscode-ipc-92ced7a6-8388-49c8-9f1a-afb6319f571f.sock
 # environment
-XDG_SESSION_ID = 3
+XDG_SESSION_ID = 4
 # environment
 USER = selwyn
 # environment
@@ -265,7 +265,7 @@ PT8HOME = /opt/pt
 # environment
 NVM_DIR = /home/selwyn/.nvm
 # environment
-SHELL_SESSION_ID = cd60c7de92154e9c82fdf6feb1a5c549
+SHELL_SESSION_ID = 557dde65ac8a45a59dcc3a096d8208b4
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # environment
@@ -273,13 +273,12 @@ GDK_BACKEND = x11
 # environment
 LC_PAPER = ms_MY.UTF-8
 # environment
-NO_AT_BRIDGE = 1
-# environment
 QT_ACCESSIBILITY = 1
 # environment
 COLORFGBG = 0;15
 # environment
 DEFAULTS_PATH = /usr/share/gconf/plasma.default.path
+ 
 # default
 MAKEFILES := 
 # environment
@@ -307,7 +306,7 @@ _CE_M =
 # environment
 CHROME_DESKTOP = code-url-handler.desktop
 # environment
-KONSOLE_DBUS_SERVICE = :1.1067
+KONSOLE_DBUS_SERVICE = :1.824
 # default
 .INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
 # environment
@@ -323,13 +322,13 @@ LANG = C
 # environment
 TERM = xterm-256color
 # environment
-VSCODE_PID = 18448
+VSCODE_PID = 24576
 # environment
 _CE_CONDA = 
 # environment
 KDE_SESSION_UID = 1000
 # variable set hash-table stats:
-# Load=159/1024=16%, Rehash=0, Collisions=25/193=13%
+# Load=158/1024=15%, Rehash=0, Collisions=25/192=13%
 
 # Pattern-specific Variable Values
 
@@ -337,9 +336,9 @@ KDE_SESSION_UID = 1000
 
 # Directories
 
-# . (device 2050, inode 13766025): 24 files, no impossibilities.
+# . (device 2050, inode 13766025): 13 files, no impossibilities.
 
-# 24 files, no impossibilities in 1 directories.
+# 13 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -391,7 +390,7 @@ Makefile:
 # Not a target:
 main.cpp:
 #  Implicit rule search has been done.
-#  Last modified 2022-04-03 14:38:42.33770327
+#  Last modified 2022-04-03 21:50:50.122547301
 #  File has been updated.
 #  Successfully updated.
 
@@ -409,12 +408,12 @@ main.cpp:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 29 / storage = 316 B / avg = 10 B
-# current buf: size = 8162 B / used = 316 B / count = 29 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 18 / storage = 144 B / avg = 8 B
+# current buf: size = 8162 B / used = 144 B / count = 18 / avg = 8 B
 
-# strcache performance: lookups = 37 / hit rate = 21%
+# strcache performance: lookups = 26 / hit rate = 30%
 # hash-table stats:
-# Load=29/8192=0%, Rehash=0, Collisions=1/37=3%
-# Finished Make data base on Sun Apr  3 15:14:11 2022
+# Load=18/8192=0%, Rehash=0, Collisions=1/26=4%
+# Finished Make data base on Sun Apr  3 21:56:24 2022
 
  
